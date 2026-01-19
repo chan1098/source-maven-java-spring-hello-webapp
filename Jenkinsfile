@@ -27,7 +27,7 @@ pipeline {
                 // Tomcat 서버로 생성된 war 파일을 배포합니다.
                 deploy adapters: [
                     tomcat9(
-                        credentialsId: 'tomcat-manager', 
+                        credentialsId: 'tomcat', 
                         url: 'http://192.168.56.102:8080'
                     )
                 ], 
