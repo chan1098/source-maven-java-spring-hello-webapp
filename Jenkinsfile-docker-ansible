@@ -1,0 +1,50 @@
+pipeline {
+  agent none
+
+  stages {
+    stage('CheckOut') {
+      agent { label ('local') }
+      steps {
+        git branch: 'main',
+        url: 'https://github.com/jhkim-09/source-maven-java-spring-hello-webapp.git'
+      }
+    }
+    stage('Build') {
+      agent {
+        docker { image 'maven:3-openjdk-17' }
+      }
+      steps {
+        sh 'mvn clean package'
+      }
+    }
+    stage('ImageBuild') {
+      agent { label ('local') }
+      steps {
+        sh 'docker image build -t tomcat:hello .'
+      }
+    }
+    stage('ImageTag') {
+      agent { label ('local') }
+      steps {
+//        sh 'docker image tag tomcat:hello kimjuhyo/tomcat:$BUILDNUMBER'
+        sh 'docker image tag tomcat:hello kimjuhyo/tomcat:latest'
+      }
+    }
+    stage('ImagePush') {
+      agent { label ('local') }
+      steps {
+        withDockerRegistry(credentialsId: 'docker-hub-token', url: 'https://index.docker.io/v1/') {
+//          sh 'docker image push kimjuhyo/tomcat:$BUILDNUMBER'
+          sh 'docker image push kimjuhyo/tomcat:latest'
+        }
+      }
+    }
+    stage('Running Container') {
+      agent { label ('local') }
+      steps {
+        ansiblePlaybook(playbook: 'playbook.yaml')
+      }
+    }
+  }
+}
+
