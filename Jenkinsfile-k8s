@@ -1,4 +1,3 @@
-vagrant@kube-control1:~/source-maven-java-spring-hello-webapp$ cat Jenkinsfile-k8s 
 pipeline {
   agent {
     kubernetes {
@@ -7,28 +6,28 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: maven
-    image: maven:3.8.5-openjdk-17
-    command:
-    - sleep
-    args:
-    - infinity
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:debug
-    command:
-    - sleep
-    args:
-    - infinity
-    volumeMounts:
-    - name: registry-credentials
-      mountPath: /kaniko/.docker
+    - name: maven
+      image: maven:3.8.5-openjdk-17
+      command:
+        - sleep
+      args:
+        - infinity
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:debug
+      command:
+        - sleep
+      args:
+        - infinity
+      volumeMounts:
+        - name: registry-credentials
+          mountPath: /kaniko/.docker
   volumes:
-  - name: registry-credentials
-    secret:
-      secretName: regcred
-      items:
-      - key: .dockerconfigjson
-        path: config.json
+    - name: registry-credentials
+      secret:
+        secretName: regcred
+        items:
+          - key: .dockerconfigjson
+            path: config.json
 '''
     }
   }
@@ -36,12 +35,12 @@ spec:
   stages {
     stage('Checkout') {
       steps {
-        // 본인의 GitHub 저장소 주소로 수정하세요.
-        git branch: 'main', url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
+        container('maven') {
+          git branch: 'main',
+          url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
+        }
       }
     }
-
-    // 사진의 'Build & Test' 단계 반영
     stage('Build & Test') {
       steps {
         container('maven') {
@@ -49,17 +48,10 @@ spec:
         }
       }
     }
-
-    // 사진의 'Image Build & Push' 단계 반영
     stage('Image Build & Push') {
       steps {
         container('kaniko') {
-          // 작은따옴표 대신 큰따옴표 3개를 사용하여 변수가 치환되도록 함
-          sh """
-            executor --context=dir://${WORKSPACE} \
-            --destination=yechan1098/k8s:${BUILD_NUMBER} \
-            --destination=yechan1098/k8s:latest
-          """
+          sh 'executor --context=dir:///home/jenkins/agent/workspace/test/ --destination=yechan1098/k8s:$BUILD_NUMBER --destination=yechan1098/k8s:latest’
         }
       }
     }
