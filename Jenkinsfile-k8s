@@ -54,8 +54,12 @@ spec:
     stage('Image Build & Push') {
       steps {
         container('kaniko') {
-          // $WORKSPACE 변수를 사용하여 경로를 더 유연하게 설정함
-          sh 'executor --context=dir://$WORKSPACE --destination=yechan1098/k8s:$BUILD_NUMBER --destination=yechan1098/k8s:latest'
+          // 작은따옴표 대신 큰따옴표 3개를 사용하여 변수가 치환되도록 함
+          sh """
+            executor --context=dir://${WORKSPACE} \
+            --destination=yechan1098/k8s:${BUILD_NUMBER} \
+            --destination=yechan1098/k8s:latest
+          """
         }
       }
     }
