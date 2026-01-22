@@ -54,7 +54,7 @@ spec:
       steps {
         container('kaniko') {
           // $WORKSPACE 변수를 사용하여 경로를 더 유연하게 설정함
-          sh 'executor --context=dir://$WORKSPACE --destination=yechan1098/k8s:$BUILD_NUMBER --destination=kimjuhyo/k8s:latest'
+          sh 'executor --context=dir://$WORKSPACE --destination=yechan1098/k8s:$BUILD_NUMBER --destination=yechan1098/k8s:latest'
         }
       }
     }
