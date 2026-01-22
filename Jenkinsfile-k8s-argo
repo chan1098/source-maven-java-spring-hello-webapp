@@ -43,7 +43,7 @@ spec:
       steps {
         container('maven') {
           git branch: 'main',
-          url: 'https://github.com/jhkim-09/source-maven-java-spring-hello-webapp.git'
+          url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
         }
       }
     }
