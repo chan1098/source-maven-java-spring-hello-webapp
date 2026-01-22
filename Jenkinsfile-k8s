@@ -35,11 +35,10 @@ spec:
   stages {
     stage('Checkout') {
       steps {
-        container('maven')
-         // <URL> 부분에 실제 GitHub 저장소 주소를 넣으세요.
-         git branch: 'main', 
-         url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
-        } 
+        // [수정] container('maven') 뒤에 시작 중괄호 { 가 빠져있었습니다.
+        container('maven') {
+          git branch: 'main', url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
+        }
       }
     }
 
@@ -54,10 +53,10 @@ spec:
     stage('Build & Tag & Push Docker Image') {
       steps {
         container('kaniko') {
-          // <ID> 부분에 본인의 도커허브 ID를 입력하세요.
-          sh 'executor --context=dir:///home/jenkins/agent/workspace/test/ --destination=yechan1098/k8s:$BUILD_NUMBER --destination=yechan1098/k8s:latest'
+          // [참고] --context 경로가 workspace 이름에 따라 다를 수 있으니 확인이 필요합니다.
+          sh 'executor --context=dir://${WORKSPACE} --destination=yechan1098/k8s:${BUILD_NUMBER} --destination=yechan1098/k8s:latest'
         }
       }
     }
-  }
-}
+  } // stages 끝
+} // pipeline 끝
