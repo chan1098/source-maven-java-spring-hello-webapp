@@ -9,7 +9,7 @@ spec:
     - name: maven
       image: maven:3.8.5-openjdk-17
       command:
-        - sleep
+        - sleepf
       args:
         - infinity
     - name: git
@@ -73,7 +73,7 @@ spec:
       }
       steps {
         container('git') {
-          git branch: 'main', credentialsID: 'github-credential',
+          git branch: 'main', credentialsId: 'github-credential',
           url: "${githubURL}"
           sh "git config --global --add safe.directory ${workspace}"
           sh "git config --global user.name ${githubUser}"
