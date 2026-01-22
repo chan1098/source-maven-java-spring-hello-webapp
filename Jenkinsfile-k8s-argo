@@ -9,7 +9,7 @@ spec:
     - name: maven
       image: maven:3.8.5-openjdk-17
       command:
-        - sleepf
+        - sleep
       args:
         - infinity
     - name: git
