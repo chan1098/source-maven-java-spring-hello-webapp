@@ -51,7 +51,13 @@ spec:
     stage('Image Build & Push') {
       steps {
         container('kaniko') {
-          sh 'executor --context=dir:///home/jenkins/agent/workspace/test/ --destination=yechan1098/k8s:$BUILD_NUMBER --destination=yechan1098/k8s:latest’
+          // [수정 핵심] 작은따옴표(' ')를 큰따옴표 3개(""" """)로 변경하여 변수 치환 허용
+          // [수정 핵심] 하드코딩된 경로 대신 ${WORKSPACE} 환경 변수 사용
+          sh """
+            executor --context=dir://${WORKSPACE} \
+            --destination=yechan1098/k8s:${BUILD_NUMBER} \
+            --destination=yechan1098/k8s:latest
+          """
         }
       }
     }
