@@ -42,11 +42,13 @@ spec:
     stage('Checkout') {
       steps {
         container('maven') {
-          git branch: 'main',
-          url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
+          git branch: 'main', 
+              credentialsId: 'github-credential',
+              url: 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
         }
       }
     }
+
     stage('Build & Test') {
       steps {
         container('maven') {
@@ -54,18 +56,24 @@ spec:
         }
       }
     }
+
     stage('Image Build & Push') {
       steps {
         container('kaniko') {
-          sh 'executor --context=dir:///home/jenkins/agent/workspace/test/ --destination=kimjuhyo/k8s:$BUILD_NUMBER --destination=kimjuhyo/k8s:latest'
+          // [수정] 변수 치환을 위해 쌍따옴표 사용 및 ${WORKSPACE}로 경로 유연화
+          sh """
+            /kaniko/executor --context=dir://${WORKSPACE} \
+            --destination=yechan1098/k8s:${BUILD_NUMBER} \
+            --destination=yechan1098/k8s:latest
+          """
         }
       }
     }
+
     stage('Update k8s Manifests & Push') {
       environment {
         githubUser    = 'chan1098'
-        githubEmail   = 'fasdf5012@gmail'
-        githubId      = 'jenkins-k8s-argo'
+        githubEmail   = 'fasdf5012@gmail.com'
         githubRepo    = 'source-maven-java-spring-hello-webapp'
         githubURL     = 'https://github.com/chan1098/source-maven-java-spring-hello-webapp.git'
         dockerhubId   = 'yechan1098'
@@ -73,20 +81,25 @@ spec:
       }
       steps {
         container('git') {
-          git branch: 'main', credentialsId: 'github-credential',
-          url: "${githubURL}"
-          sh "git config --global --add safe.directory ${workspace}"
-          sh "git config --global user.name ${githubUser}"
-          sh "git config --global user.email ${githubEmail}"
-          sh 'sed -i "s/image:.*/image: ${dockerhubId}\\/${dockerhubRepo}:${BUILD_NUMBER}/g" deployment.yaml'
-          sh 'git add deployment.yaml'
-          sh 'git commit -m "Jenkins Build Number - ${BUILD_NUMBER}"'
+          // Git 설정 및 배포 파일 업데이트
+          sh """
+            git config --global user.name "${githubUser}"
+            git config --global user.email "${githubEmail}"
+            git config --global --add safe.directory ${WORKSPACE}
+            
+            # deployment.yaml 파일 내의 이미지 태그를 현재 빌드 번호로 변경
+            sed -i "s|image:.*|image: ${dockerhubId}/${dockerhubRepo}:${BUILD_NUMBER}|g" deployment.yaml
+            
+            git add deployment.yaml
+            git commit -m "Update image to version ${BUILD_NUMBER} [Jenkins]"
+          """
+          
+          // 인증 정보를 사용하여 변경사항 푸시
           withCredentials([gitUsernamePassword(credentialsId: 'github-credential', gitToolName: 'Default')]) {
-            sh 'git push --set-upstream origin main'
+            sh 'git push origin main'
           }
         }
       }
     }
   }
 }
-
